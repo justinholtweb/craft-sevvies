@@ -1,0 +1,37 @@
+{# Renders inside Commerce's own order screen. #}
+<div class="meta">
+    <div class="data">
+        <h5 class="heading">{{ 'sevDesk'|t('sevvies') }}</h5>
+        <div class="value">
+            {% if record and record.sevdeskId %}
+                <p>
+                    <span class="status {{ record.reconciled ? 'green' : 'red' }}"></span>
+                    <strong>{{ record.invoiceNumber ?: '#' ~ record.sevdeskId }}</strong>
+                </p>
+                <p class="light">
+                    {% if record.reconciled %}
+                        {{ 'Filed for {total}.'|t('sevvies', { total: (record.sumGross ?? 0)|currency(record.currency ?: 'EUR') }) }}
+                    {% else %}
+                        {{ 'The filed total does not match this order.'|t('sevvies') }}
+                    {% endif %}
+                    {% if record.sentAt %} {{ 'Sent.'|t('sevvies') }}{% endif %}
+                    {% if record.bookedAt %} {{ 'Paid.'|t('sevvies') }}{% endif %}
+                </p>
+                {% if record.taxReason %}
+                    <p class="light">{{ record.taxReason }}</p>
+                {% endif %}
+            {% elseif record and record.state == 'blocked' %}
+                <p><span class="status orange"></span>{{ 'Not filed'|t('sevvies') }}</p>
+                <p class="light">{{ record.lastError }}</p>
+            {% else %}
+                <p class="light">{{ 'Not filed in sevDesk.'|t('sevvies') }}</p>
+            {% endif %}
+
+            <p style="margin-top: 8px;">
+                <a class="btn small" href="{{ url('sevvies/invoices/' ~ order.id) }}">
+                    {{ record and record.sevdeskId ? 'Details'|t('sevvies') : 'Preview and file'|t('sevvies') }}
+                </a>
+            </p>
+        </div>
+    </div>
+</div>

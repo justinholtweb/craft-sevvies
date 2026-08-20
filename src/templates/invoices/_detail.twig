@@ -1,0 +1,161 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Order {reference}'|t('sevvies', { reference: order.reference ?: order.number|slice(0, 7) }) %}
+{% set selectedSubnavItem = 'invoices' %}
+{% set crumbs = [
+    { label: 'Invoices'|t('sevvies'), url: url('sevvies') },
+] %}
+
+{% block content %}
+    <div class="flex" style="gap: 8px; margin-bottom: 18px; flex-wrap: wrap;">
+        <a class="btn" href="{{ order.cpEditUrl }}">{{ 'Open the order'|t('sevvies') }}</a>
+
+        {% if record and record.sevdeskId %}
+            <a class="btn" href="{{ url('sevvies/invoices/' ~ order.id ~ '/pdf') }}">{{ 'Download PDF'|t('sevvies') }}</a>
+            {% if not record.sentAt %}
+                <button type="button" class="btn" data-sevvies-action="sevvies/invoices/send" data-mode="mark">{{ 'Mark as sent'|t('sevvies') }}</button>
+                <button type="button" class="btn" data-sevvies-action="sevvies/invoices/send" data-mode="email">{{ 'Email it'|t('sevvies') }}</button>
+            {% endif %}
+            {% if isPro and not record.bookedAt and order.isPaid %}
+                <button type="button" class="btn" data-sevvies-action="sevvies/invoices/book">{{ 'Book the payment'|t('sevvies') }}</button>
+            {% endif %}
+            <button type="button" class="btn" data-sevvies-action="sevvies/invoices/forget">{{ 'Forget this link'|t('sevvies') }}</button>
+        {% else %}
+            <button type="button" class="btn submit" data-sevvies-action="sevvies/invoices/sync">{{ 'Create the invoice'|t('sevvies') }}</button>
+        {% endif %}
+    </div>
+
+    {% if buildError %}
+        <blockquote class="note error"><p>{{ buildError }}</p></blockquote>
+    {% endif %}
+
+    {% if draft %}
+        {% for error in draft.blockers %}
+            <blockquote class="note error"><p>{{ error }}</p></blockquote>
+        {% endfor %}
+        {% for warning in draft.warnings %}
+            <blockquote class="note warning"><p>{{ warning }}</p></blockquote>
+        {% endfor %}
+    {% endif %}
+
+    <div class="pane">
+        <h2>{{ 'sevDesk'|t('sevvies') }}</h2>
+        {% if record and record.sevdeskId %}
+            <table class="data fullwidth">
+                <tr><th>{{ 'Invoice number'|t('sevvies') }}</th><td>{{ record.invoiceNumber ?: '#' ~ record.sevdeskId }}</td></tr>
+                <tr><th>{{ 'State'|t('sevvies') }}</th><td>{{ record.state }}</td></tr>
+                <tr>
+                    <th>{{ 'Booked total'|t('sevvies') }}</th>
+                    <td>
+                        {{ record.sumGross is not null ? record.sumGross|currency(record.currency ?: 'EUR') : '—' }}
+                        {% if record.reconciled %}
+                            <span class="status green"></span>{{ 'matches Commerce'|t('sevvies') }}
+                        {% else %}
+                            <span class="status red"></span>{{ 'does not match Commerce'|t('sevvies') }}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr><th>{{ 'Commerce total'|t('sevvies') }}</th><td>{{ order.totalPrice|currency(order.currency) }}</td></tr>
+                <tr><th>{{ 'Sent'|t('sevvies') }}</th><td>{{ record.sentAt ? record.sentAt|datetime('short') : '—' }}</td></tr>
+                <tr><th>{{ 'Payment booked'|t('sevvies') }}</th><td>{{ record.bookedAt ? record.bookedAt|datetime('short') : '—' }}</td></tr>
+                {% if record.lastError %}
+                    <tr><th>{{ 'Last problem'|t('sevvies') }}</th><td class="error">{{ record.lastError }}</td></tr>
+                {% endif %}
+            </table>
+        {% else %}
+            <p class="light">{{ 'This order has not been filed in sevDesk.'|t('sevvies') }}</p>
+        {% endif %}
+    </div>
+
+    {% if draft %}
+        <div class="pane">
+            <h2>{{ 'VAT'|t('sevvies') }}</h2>
+            <table class="data fullwidth">
+                <tr><th>{{ 'Rule'|t('sevvies') }}</th><td>{{ draft.decision.label }} <span class="light">(taxRule {{ draft.decision.rule }} / taxType {{ draft.decision.type }})</span></td></tr>
+                <tr><th>{{ 'Why'|t('sevvies') }}</th><td>{{ draft.decision.reason }}</td></tr>
+                <tr><th>{{ 'Printed on the invoice'|t('sevvies') }}</th><td>{{ draft.decision.text }}</td></tr>
+            </table>
+        </div>
+
+        <div class="pane">
+            <h2>{{ 'What would be filed'|t('sevvies') }}</h2>
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th>{{ 'Position'|t('sevvies') }}</th>
+                        <th>{{ 'Qty'|t('sevvies') }}</th>
+                        <th>{{ 'Unit price'|t('sevvies') }}</th>
+                        <th>{{ 'VAT'|t('sevvies') }}</th>
+                        <th>{{ 'Net'|t('sevvies') }}</th>
+                        <th>{{ 'Gross'|t('sevvies') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for position in draft.positions %}
+                        <tr>
+                            <td>
+                                {{ position.name }}
+                                {% if position.text %}<div class="light" style="white-space: pre-line;">{{ position.text }}</div>{% endif %}
+                            </td>
+                            <td>{{ position.quantity }}</td>
+                            <td>{{ position.price|number(decimals=4) }}</td>
+                            <td>{{ position.taxRate }}%</td>
+                            <td>{{ position._net|currency(draft.currency) }}</td>
+                            <td>{{ position._gross|currency(draft.currency) }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for discount in draft.discounts %}
+                        <tr>
+                            <td colspan="5">{{ discount.text }}</td>
+                            <td>−{{ discount.value|currency(draft.currency) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4">{{ 'Total'|t('sevvies') }}</th>
+                        <td>{{ draft.computedNet|currency(draft.currency) }}</td>
+                        <td>
+                            <strong>{{ draft.computedGross|currency(draft.currency) }}</strong>
+                            {% if draft.balances() %}
+                                <span class="status green"></span>
+                            {% else %}
+                                <span class="status red"></span>{{ '{difference} out'|t('sevvies', { difference: draft.difference()|currency(draft.currency) }) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="4">{{ 'Commerce charged'|t('sevvies') }}</th>
+                        <td></td>
+                        <td>{{ draft.expectedGross|currency(draft.currency) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="pane">
+            <h2>{{ 'Payload'|t('sevvies') }}</h2>
+            <p class="light">{{ 'Exactly what Sevvies would POST to Invoice/Factory/saveInvoice.'|t('sevvies') }}</p>
+            <pre class="code" style="max-height: 420px; overflow: auto;">{{ payload }}</pre>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+document.querySelectorAll('[data-sevvies-action]').forEach(function(button) {
+    button.addEventListener('click', function() {
+        button.classList.add('disabled');
+
+        Craft.sendActionRequest('POST', button.dataset.sevviesAction, {
+            data: { orderId: {{ order.id }}, mode: button.dataset.mode || '' }
+        }).then(function(response) {
+            Craft.cp.displayNotice(response.data.message);
+            window.location.reload();
+        }).catch(function(error) {
+            var message = (error.response && error.response.data && error.response.data.message) || {{ 'That did not work.'|t('sevvies')|json_encode|raw }};
+            Craft.cp.displayError(message);
+            button.classList.remove('disabled');
+        });
+    });
+});
+{% endjs %}

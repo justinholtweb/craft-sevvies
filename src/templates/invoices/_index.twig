@@ -1,0 +1,99 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Invoices'|t('sevvies') %}
+{% set selectedSubnavItem = 'invoices' %}
+
+{% set states = {
+    '': 'All'|t('sevvies'),
+    created: 'Created'|t('sevvies'),
+    sent: 'Sent'|t('sevvies'),
+    booked: 'Booked'|t('sevvies'),
+    blocked: 'Needs attention'|t('sevvies'),
+    failed: 'Failed'|t('sevvies'),
+    skipped: 'Dry run'|t('sevvies'),
+    pending: 'Pending'|t('sevvies'),
+} %}
+
+{% block content %}
+    <div class="flex" style="margin-bottom: 14px; flex-wrap: wrap; gap: 6px;">
+        {% for value, label in states %}
+            {% set count = value ? (counts[value] ?? 0) : total %}
+            <a class="btn{{ state == value or (not state and not value) ? ' active' : '' }}"
+               href="{{ url('sevvies', value ? { state: value } : {}) }}">
+                {{ label }}{% if count %} <span class="light">{{ count }}</span>{% endif %}
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if rows|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Order'|t('sevvies') }}</th>
+                    <th>{{ 'Invoice'|t('sevvies') }}</th>
+                    <th>{{ 'VAT rule'|t('sevvies') }}</th>
+                    <th>{{ 'Total'|t('sevvies') }}</th>
+                    <th>{{ 'State'|t('sevvies') }}</th>
+                    <th>{{ 'When'|t('sevvies') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    {% set order = orders[row.orderId] ?? null %}
+                    <tr>
+                        <td>
+                            <a href="{{ url('sevvies/invoices/' ~ row.orderId) }}">
+                                {{ order ? (order.reference ?: order.number|slice(0, 7)) : ('Order #'|t('sevvies') ~ row.orderId) }}
+                            </a>
+                        </td>
+                        <td>
+                            {{ row.invoiceNumber ?: (row.sevdeskId ? '#' ~ row.sevdeskId : '—') }}
+                        </td>
+                        <td class="light">
+                            {{ row.taxRule ? 'Rule'|t('sevvies') ~ ' ' ~ row.taxRule : '—' }}
+                        </td>
+                        <td>
+                            {% if row.sumGross is not null %}
+                                {{ row.sumGross|currency(row.currency ?: 'EUR') }}
+                                {% if not row.reconciled %}
+                                    <span class="status red" title="{{ 'Does not match Commerce'|t('sevvies') }}"></span>
+                                {% endif %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set colour = {
+                                created: 'green', sent: 'green', booked: 'green',
+                                blocked: 'orange', failed: 'red', pending: 'yellow', skipped: 'grey',
+                            }[row.state] ?? 'grey' %}
+                            <span class="status {{ colour }}"></span>{{ states[row.state] ?? row.state }}
+                            {% if row.lastError %}
+                                <div class="light code" style="white-space: normal;">{{ row.lastError }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="light">{{ row.dateCreated|datetime('short') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% set pages = (total / perPage)|round(0, 'ceil') %}
+        {% if pages > 1 %}
+            <div class="flex" style="margin-top: 14px;">
+                {% if page > 1 %}
+                    <a class="btn" href="{{ url('sevvies', { state: state, page: page - 1 }) }}">{{ '← Previous'|t('sevvies') }}</a>
+                {% endif %}
+                <span class="light">{{ 'Page {page} of {pages}'|t('sevvies', { page: page, pages: pages }) }}</span>
+                {% if page < pages %}
+                    <a class="btn" href="{{ url('sevvies', { state: state, page: page + 1 }) }}">{{ 'Next →'|t('sevvies') }}</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="zilch">
+            <p>{{ 'No orders have been sent to sevDesk yet.'|t('sevvies') }}</p>
+            <p class="light">{{ 'Open any completed order and use the Sevvies panel to preview exactly what would be filed.'|t('sevvies') }}</p>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Log entry'|t('sevvies') %}
+{% set selectedSubnavItem = 'log' %}
+{% set crumbs = [{ label: 'Log'|t('sevvies'), url: url('sevvies/log') }] %}
+
+{% block content %}
+    <div class="pane">
+        <table class="data fullwidth">
+            <tr><th>{{ 'When'|t('sevvies') }}</th><td>{{ entry.dateCreated|datetime('long') }}</td></tr>
+            <tr><th>{{ 'Type'|t('sevvies') }}</th><td>{{ entry.type }}</td></tr>
+            <tr>
+                <th>{{ 'Result'|t('sevvies') }}</th>
+                <td><span class="status {{ entry.success ? 'green' : 'red' }}"></span>{{ entry.success ? 'Succeeded'|t('sevvies') : 'Failed'|t('sevvies') }}</td>
+            </tr>
+            {% if entry.endpoint %}
+                <tr><th>{{ 'Endpoint'|t('sevvies') }}</th><td><code>{{ entry.method }} {{ entry.endpoint }}</code></td></tr>
+                <tr><th>{{ 'Status'|t('sevvies') }}</th><td>{{ entry.statusCode ?: '—' }}</td></tr>
+                <tr><th>{{ 'Took'|t('sevvies') }}</th><td>{{ entry.durationMs ? entry.durationMs ~ ' ms' : '—' }}</td></tr>
+            {% endif %}
+            {% if entry.orderId %}
+                <tr><th>{{ 'Order'|t('sevvies') }}</th><td><a href="{{ url('sevvies/invoices/' ~ entry.orderId) }}">#{{ entry.orderId }}</a></td></tr>
+            {% endif %}
+            {% if entry.message %}
+                <tr><th>{{ 'Message'|t('sevvies') }}</th><td>{{ entry.message }}</td></tr>
+            {% endif %}
+        </table>
+    </div>
+
+    {% if entry.requestBody %}
+        <div class="pane">
+            <h2>{{ 'Request'|t('sevvies') }}</h2>
+            <pre class="code" style="max-height: 400px; overflow: auto;">{{ entry.requestBody }}</pre>
+        </div>
+    {% endif %}
+
+    {% if entry.responseBody %}
+        <div class="pane">
+            <h2>{{ 'Response'|t('sevvies') }}</h2>
+            <pre class="code" style="max-height: 400px; overflow: auto;">{{ entry.responseBody }}</pre>
+        </div>
+    {% endif %}
+{% endblock %}

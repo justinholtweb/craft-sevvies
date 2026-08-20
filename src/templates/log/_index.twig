@@ -1,0 +1,74 @@
+{% extends '_layouts/cp' %}
+
+{% set title = 'Log'|t('sevvies') %}
+{% set selectedSubnavItem = 'log' %}
+
+{% block actionButton %}
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('sevvies/log/clear') }}
+        <button type="submit" class="btn">{{ 'Clear the log'|t('sevvies') }}</button>
+    </form>
+{% endblock %}
+
+{% block content %}
+    <div class="flex" style="gap: 6px; margin-bottom: 14px;">
+        <a class="btn{{ only ? '' : ' active' }}" href="{{ url('sevvies/log') }}">{{ 'Everything'|t('sevvies') }}</a>
+        <a class="btn{{ only == 'failures' ? ' active' : '' }}" href="{{ url('sevvies/log', { only: 'failures' }) }}">{{ 'Failures only'|t('sevvies') }}</a>
+    </div>
+
+    {% if entries|length %}
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>{{ 'When'|t('sevvies') }}</th>
+                    <th>{{ 'What'|t('sevvies') }}</th>
+                    <th>{{ 'Order'|t('sevvies') }}</th>
+                    <th>{{ 'Took'|t('sevvies') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                    <tr>
+                        <td><span class="status {{ entry.success ? 'green' : 'red' }}"></span></td>
+                        <td class="light">{{ entry.dateCreated|datetime('short') }}</td>
+                        <td>
+                            <a href="{{ url('sevvies/log/' ~ entry.id) }}">
+                                {% if entry.endpoint %}
+                                    <code>{{ entry.method }} {{ entry.endpoint }}</code>{% if entry.statusCode %} <span class="light">{{ entry.statusCode }}</span>{% endif %}
+                                {% else %}
+                                    {{ entry.message ?: entry.type }}
+                                {% endif %}
+                            </a>
+                            {% if entry.endpoint and entry.message %}
+                                <div class="light" style="white-space: normal;">{{ entry.message }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.orderId %}
+                                <a href="{{ url('sevvies/invoices/' ~ entry.orderId) }}">#{{ entry.orderId }}</a>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="light">{{ entry.durationMs ? entry.durationMs ~ ' ms' : '—' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% set pages = (total / perPage)|round(0, 'ceil') %}
+        {% if pages > 1 %}
+            <div class="flex" style="margin-top: 14px;">
+                {% if page > 1 %}
+                    <a class="btn" href="{{ url('sevvies/log', { only: only, page: page - 1 }) }}">{{ '← Previous'|t('sevvies') }}</a>
+                {% endif %}
+                <span class="light">{{ 'Page {page} of {pages}'|t('sevvies', { page: page, pages: pages }) }}</span>
+                {% if page < pages %}
+                    <a class="btn" href="{{ url('sevvies/log', { only: only, page: page + 1 }) }}">{{ 'Next →'|t('sevvies') }}</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="zilch"><p>{{ 'Nothing logged yet.'|t('sevvies') }}</p></div>
+    {% endif %}
+{% endblock %}

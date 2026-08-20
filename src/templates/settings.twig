@@ -1,0 +1,516 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set title = 'Sevvies'|t('sevvies') %}
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% set crumbs = [
+    { label: 'Sevvies'|t('sevvies'), url: url('sevvies') },
+] %}
+
+{% set tabs = {
+    connection: { label: 'Connection'|t('sevvies'), url: '#connection' },
+    when: { label: 'When to invoice'|t('sevvies'), url: '#when' },
+    document: { label: 'Document'|t('sevvies'), url: '#document' },
+    tax: { label: 'VAT'|t('sevvies'), url: '#tax' },
+    contacts: { label: 'Contacts'|t('sevvies'), url: '#contacts' },
+    after: { label: 'After invoicing'|t('sevvies'), url: '#after' },
+} %}
+
+{% block content %}
+    {{ actionInput('sevvies/settings/save') }}
+    {{ redirectInput('sevvies/settings') }}
+
+    <div id="connection">
+        {{ forms.autosuggestField({
+            label: 'API token'|t('sevvies'),
+            instructions: 'Your sevDesk API token — 32 hexadecimal characters. In sevDesk: Settings → User → your user → API token.'|t('sevvies'),
+            id: 'apiToken',
+            name: 'settings[apiToken]',
+            value: settings.apiToken,
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiToken'),
+        }) }}
+
+        {{ forms.autosuggestField({
+            label: 'API base URL'|t('sevvies'),
+            instructions: 'Leave this alone unless you are pointing Sevvies at a mock server.'|t('sevvies'),
+            id: 'apiBaseUrl',
+            name: 'settings[apiBaseUrl]',
+            value: settings.apiBaseUrl,
+            suggestEnvVars: true,
+            errors: settings.getErrors('apiBaseUrl'),
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Bookkeeping system'|t('sevvies'),
+            instructions: 'sevDesk 2.0 uses VAT rules; 1.0 uses tax types. Sevvies asks your account which it is on, and sends both, so you should not need to set this.'|t('sevvies'),
+            id: 'bookkeepingVersion',
+            name: 'settings[bookkeepingVersion]',
+            value: settings.bookkeepingVersion,
+            options: {
+                '': 'Detect automatically'|t('sevvies'),
+                '2.0': 'sevDesk 2.0'|t('sevvies'),
+                '1.0': 'sevDesk 1.0'|t('sevvies'),
+            },
+        }) }}
+
+        <div class="field">
+            <div class="heading"><label>{{ 'Connection'|t('sevvies') }}</label></div>
+            <div class="input">
+                <button type="button" id="sevvies-test" class="btn">{{ 'Test connection'|t('sevvies') }}</button>
+                <span id="sevvies-test-result" class="light" style="margin-left: 8px;"></span>
+            </div>
+        </div>
+
+        {{ forms.textField({
+            label: 'Timeout'|t('sevvies'),
+            instructions: 'Seconds to wait for sevDesk before giving up.'|t('sevvies'),
+            type: 'number',
+            id: 'timeout',
+            name: 'settings[timeout]',
+            value: settings.timeout,
+            size: 5,
+            errors: settings.getErrors('timeout'),
+        }) }}
+    </div>
+
+    <div id="when" class="hidden">
+        {{ forms.selectField({
+            label: 'Create the invoice when'|t('sevvies'),
+            id: 'trigger',
+            name: 'settings[trigger]',
+            value: settings.trigger,
+            options: {
+                paid: 'The order is paid'|t('sevvies'),
+                complete: 'The order is completed'|t('sevvies'),
+                status: 'The order reaches a status'|t('sevvies'),
+                off: 'Never — I will do it by hand'|t('sevvies'),
+            },
+            toggle: true,
+            targetPrefix: '.trigger-',
+        }) }}
+
+        <div class="trigger-status {{ settings.trigger == 'status' ? '' : 'hidden' }}">
+            {{ forms.checkboxGroupField({
+                label: 'Statuses'|t('sevvies'),
+                instructions: 'The invoice is created the first time the order reaches any of these.'|t('sevvies'),
+                name: 'settings[triggerStatuses]',
+                values: settings.triggerStatuses,
+                options: orderStatuses,
+            }) }}
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Send in the background'|t('sevvies'),
+            instructions: 'Strongly recommended. Checkout never waits for sevDesk, and a sevDesk outage can never stop a customer paying.'|t('sevvies'),
+            id: 'useQueue',
+            name: 'settings[useQueue]',
+            on: settings.useQueue,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Dry run'|t('sevvies'),
+            instructions: 'Build every invoice and write it to the log, but send nothing. The right way to check your VAT settings against real orders before going live.'|t('sevvies'),
+            id: 'dryRun',
+            name: 'settings[dryRun]',
+            on: settings.dryRun,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Retries'|t('sevvies'),
+            instructions: 'How many times a failed send is retried. Only timeouts and sevDesk errors are retried — a rejected invoice is never retried, because it would be rejected identically.'|t('sevvies'),
+            type: 'number',
+            id: 'maxAttempts',
+            name: 'settings[maxAttempts]',
+            value: settings.maxAttempts,
+            size: 4,
+        }) }}
+    </div>
+
+    <div id="document" class="hidden">
+        {{ forms.selectField({
+            label: 'Position prices'|t('sevvies'),
+            instructions: 'How your sevDesk account reads the prices Sevvies sends. If this is wrong, sevDesk books the total with VAT added or removed — Sevvies checks every invoice against Commerce and refuses to leave a wrong one standing.'|t('sevvies'),
+            id: 'priceBasis',
+            name: 'settings[priceBasis]',
+            value: settings.priceBasis,
+            options: {
+                net: 'Net (excluding VAT)'|t('sevvies'),
+                gross: 'Gross (including VAT)'|t('sevvies'),
+            },
+        }) }}
+
+        {{ forms.textField({
+            label: 'Payment term'|t('sevvies'),
+            instructions: 'Days until the invoice is due.'|t('sevvies'),
+            type: 'number',
+            id: 'timeToPay',
+            name: 'settings[timeToPay]',
+            value: settings.timeToPay,
+            size: 4,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Shipping position name'|t('sevvies'),
+            id: 'shippingName',
+            name: 'settings[shippingName]',
+            value: settings.shippingName,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Show discounts as discounts'|t('sevvies'),
+            instructions: 'On: an order-level discount becomes a discount line on the sevDesk document. Off: it is spread across the positions.'|t('sevvies'),
+            id: 'sendDiscounts',
+            name: 'settings[sendDiscounts]',
+            on: settings.sendDiscounts,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Include SKUs'|t('sevvies'),
+            id: 'includeSku',
+            name: 'settings[includeSku]',
+            on: settings.includeSku,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Header'|t('sevvies'),
+            instructions: 'Twig, rendered against the order. Leave empty for sevDesk’s default.'|t('sevvies'),
+            id: 'headerTemplate',
+            name: 'settings[headerTemplate]',
+            value: settings.headerTemplate,
+            placeholder: 'Rechnung zu Bestellung {reference}',
+        }) }}
+
+        {{ forms.textareaField({
+            label: 'Intro text'|t('sevvies'),
+            id: 'headTextTemplate',
+            name: 'settings[headTextTemplate]',
+            value: settings.headTextTemplate,
+            rows: 3,
+        }) }}
+
+        {{ forms.textareaField({
+            label: 'Footer text'|t('sevvies'),
+            id: 'footTextTemplate',
+            name: 'settings[footTextTemplate]',
+            value: settings.footTextTemplate,
+            rows: 3,
+        }) }}
+
+        {{ forms.textField({
+            label: 'sevDesk unit id'|t('sevvies'),
+            instructions: 'The Unity id positions are measured in. 1 is “Stück”.'|t('sevvies'),
+            type: 'number',
+            id: 'unityId',
+            name: 'settings[unityId]',
+            value: settings.unityId,
+            size: 5,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Contact person id'|t('sevvies'),
+            instructions: 'The sevDesk user shown on the document. Leave empty to use the first one — “Test connection” lists them.'|t('sevvies'),
+            type: 'number',
+            id: 'contactPersonId',
+            name: 'settings[contactPersonId]',
+            value: settings.contactPersonId,
+            size: 8,
+        }) }}
+    </div>
+
+    <div id="tax" class="hidden">
+        {{ forms.selectField({
+            label: 'Tax scheme'|t('sevvies'),
+            instructions: 'A Kleinunternehmer under §19 UStG charges no VAT and every invoice is issued under that one rule.'|t('sevvies'),
+            id: 'taxScheme',
+            name: 'settings[taxScheme]',
+            value: settings.taxScheme,
+            options: {
+                standard: 'Regelbesteuerung'|t('sevvies'),
+                small: 'Kleinunternehmer (§19 UStG)'|t('sevvies'),
+            },
+        }) }}
+
+        {{ forms.textField({
+            label: 'Home country'|t('sevvies'),
+            instructions: 'Two-letter code of the country you are taxed in.'|t('sevvies'),
+            id: 'homeCountry',
+            name: 'settings[homeCountry]',
+            value: settings.homeCountry,
+            size: 4,
+            errors: settings.getErrors('homeCountry'),
+        }) }}
+
+        {% if isPro %}
+            {{ forms.lightswitchField({
+                label: 'Work out the VAT rule per order'|t('sevvies'),
+                instructions: 'Domestic sales, exports outside the EU, and intra-community supplies to EU businesses with a VAT ID each get the right rule, and the reason is recorded on the invoice.'|t('sevvies'),
+                id: 'autoTaxRule',
+                name: 'settings[autoTaxRule]',
+                on: settings.autoTaxRule,
+            }) }}
+
+            {{ forms.textField({
+                label: 'VAT ID field'|t('sevvies'),
+                instructions: 'Handle of the field holding the customer’s VAT ID. Leave empty to use the billing address’s “Organization tax ID”.'|t('sevvies'),
+                id: 'vatIdField',
+                name: 'settings[vatIdField]',
+                value: settings.vatIdField,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Require a VAT ID for reverse charge'|t('sevvies'),
+                id: 'reverseChargeRequiresVatId',
+                name: 'settings[reverseChargeRequiresVatId]',
+                on: settings.reverseChargeRequiresVatId,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'One Stop Shop'|t('sevvies'),
+                instructions: 'On if you are registered for OSS and charge destination VAT to EU consumers.'|t('sevvies'),
+                id: 'ossEnabled',
+                name: 'settings[ossEnabled]',
+                on: settings.ossEnabled,
+                toggle: 'oss-settings',
+            }) }}
+
+            <div id="oss-settings" class="{{ settings.ossEnabled ? '' : 'hidden' }}">
+                {{ forms.selectField({
+                    label: 'What you sell'|t('sevvies'),
+                    id: 'ossKind',
+                    name: 'settings[ossKind]',
+                    value: settings.ossKind,
+                    options: {
+                        goods: 'Goods'|t('sevvies'),
+                        electronic: 'Electronic services'|t('sevvies'),
+                        other: 'Other services'|t('sevvies'),
+                    },
+                }) }}
+            </div>
+        {% else %}
+            <div class="readable">
+                <blockquote class="note">
+                    {{ 'Sevvies Pro works out the VAT rule for each order — exports, intra-community supplies with reverse charge, and One Stop Shop. Lite issues every invoice under the default rule below.'|t('sevvies') }}
+                </blockquote>
+            </div>
+        {% endif %}
+
+        {{ forms.selectField({
+            label: 'Default VAT rule'|t('sevvies'),
+            instructions: 'Used when automatic rules are off, or when nothing else matches.'|t('sevvies'),
+            id: 'defaultTaxRule',
+            name: 'settings[defaultTaxRule]',
+            value: settings.defaultTaxRule,
+            options: taxRules,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Tax text override'|t('sevvies'),
+            instructions: 'Leave empty and Sevvies prints the sentence the chosen rule requires — for example “Steuerfreie innergemeinschaftliche Lieferung” on a reverse-charge invoice.'|t('sevvies'),
+            id: 'taxText',
+            name: 'settings[taxText]',
+            value: settings.taxText,
+        }) }}
+    </div>
+
+    <div id="contacts" class="hidden">
+        {{ forms.lightswitchField({
+            label: 'Create contacts'|t('sevvies'),
+            instructions: 'Create a sevDesk contact for a customer who does not have one.'|t('sevvies'),
+            id: 'createContacts',
+            name: 'settings[createContacts]',
+            on: settings.createContacts,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Match by email'|t('sevvies'),
+            instructions: 'Reuse an existing sevDesk contact whose email address matches the order’s.'|t('sevvies'),
+            id: 'matchContactsByEmail',
+            name: 'settings[matchContactsByEmail]',
+            on: settings.matchContactsByEmail,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Assign customer numbers'|t('sevvies'),
+            instructions: 'Ask sevDesk for the next free customer number when creating a contact.'|t('sevvies'),
+            id: 'assignCustomerNumber',
+            name: 'settings[assignCustomerNumber]',
+            on: settings.assignCustomerNumber,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Keep addresses up to date'|t('sevvies'),
+            instructions: 'Write the billing address to the sevDesk contact when a returning customer’s address has changed.'|t('sevvies'),
+            id: 'updateContactAddress',
+            name: 'settings[updateContactAddress]',
+            on: settings.updateContactAddress,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Contact category id'|t('sevvies'),
+            instructions: '3 is sevDesk’s “customer” category.'|t('sevvies'),
+            type: 'number',
+            id: 'contactCategoryId',
+            name: 'settings[contactCategoryId]',
+            value: settings.contactCategoryId,
+            size: 5,
+        }) }}
+    </div>
+
+    <div id="after" class="hidden">
+        {{ forms.selectField({
+            label: 'Sending'|t('sevvies'),
+            instructions: 'sevDesk creates every invoice as a draft. Sending it — or marking it sent — is what turns it into a bookkeeping document.'|t('sevvies'),
+            id: 'sendMode',
+            name: 'settings[sendMode]',
+            value: settings.sendMode,
+            options: {
+                none: 'Leave it as a draft'|t('sevvies'),
+                mark: 'Mark as sent, but don’t email'|t('sevvies'),
+                email: 'Have sevDesk email it to the customer'|t('sevvies'),
+            },
+            toggle: true,
+            targetPrefix: '.send-',
+        }) }}
+
+        <div class="send-email {{ settings.sendMode == 'email' ? '' : 'hidden' }}">
+            {{ forms.textField({
+                label: 'Subject'|t('sevvies'),
+                instructions: 'Twig, rendered against the order.'|t('sevvies'),
+                id: 'emailSubject',
+                name: 'settings[emailSubject]',
+                value: settings.emailSubject,
+            }) }}
+
+            {{ forms.textareaField({
+                label: 'Body'|t('sevvies'),
+                instructions: 'May contain HTML.'|t('sevvies'),
+                id: 'emailText',
+                name: 'settings[emailText]',
+                value: settings.emailText,
+                rows: 5,
+            }) }}
+
+            {{ forms.textField({
+                label: 'BCC'|t('sevvies'),
+                instructions: 'Comma-separated.'|t('sevvies'),
+                id: 'emailBcc',
+                name: 'settings[emailBcc]',
+                value: settings.emailBcc,
+            }) }}
+        </div>
+
+        {% if isPro %}
+            {{ forms.lightswitchField({
+                label: 'Book payments'|t('sevvies'),
+                instructions: 'When Commerce marks an order paid, book the amount against the sevDesk invoice so it closes.'|t('sevvies'),
+                id: 'bookPayments',
+                name: 'settings[bookPayments]',
+                on: settings.bookPayments,
+                toggle: 'book-settings',
+            }) }}
+
+            <div id="book-settings" class="{{ settings.bookPayments ? '' : 'hidden' }}">
+                {{ forms.textField({
+                    label: 'Check account id'|t('sevvies'),
+                    instructions: 'The sevDesk account payments are booked onto. “Test connection” lists yours.'|t('sevvies'),
+                    type: 'number',
+                    id: 'checkAccountId',
+                    name: 'settings[checkAccountId]',
+                    value: settings.checkAccountId,
+                    size: 8,
+                }) }}
+            </div>
+
+            {{ forms.selectField({
+                label: 'Refunds'|t('sevvies'),
+                instructions: 'A full refund reverses the invoice; a partial one gets a credit note filed against it.'|t('sevvies'),
+                id: 'refundMode',
+                name: 'settings[refundMode]',
+                value: settings.refundMode,
+                options: {
+                    none: 'Do nothing'|t('sevvies'),
+                    creditNote: 'Create a credit note'|t('sevvies'),
+                },
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Archive the PDF'|t('sevvies'),
+                instructions: 'Store sevDesk’s PDF as a Craft asset, so the archive outlives the subscription.'|t('sevvies'),
+                id: 'pdfVolumeUid',
+                name: 'settings[pdfVolumeUid]',
+                value: settings.pdfVolumeUid,
+                options: volumes,
+            }) }}
+
+            {{ forms.textField({
+                label: 'PDF subfolder'|t('sevvies'),
+                instructions: 'Twig, rendered against the order — for example a year/month path.'|t('sevvies'),
+                id: 'pdfSubpath',
+                name: 'settings[pdfSubpath]',
+                value: settings.pdfSubpath,
+            }) }}
+        {% else %}
+            <div class="readable">
+                <blockquote class="note">
+                    {{ 'Booking payments, credit notes for refunds and PDF archiving are Sevvies Pro features.'|t('sevvies') }}
+                </blockquote>
+            </div>
+        {% endif %}
+
+        {{ forms.textField({
+            label: 'Keep the log for'|t('sevvies'),
+            instructions: 'Days. 0 keeps everything.'|t('sevvies'),
+            type: 'number',
+            id: 'logRetentionDays',
+            name: 'settings[logRetentionDays]',
+            value: settings.logRetentionDays,
+            size: 5,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Log request bodies'|t('sevvies'),
+            instructions: 'Keeps the full payload for every call. Turn off if you would rather not store customer addresses twice.'|t('sevvies'),
+            id: 'logBodies',
+            name: 'settings[logBodies]',
+            on: settings.logBodies,
+        }) }}
+    </div>
+{% endblock %}
+
+{% js %}
+document.getElementById('sevvies-test').addEventListener('click', function() {
+    var button = this;
+    var result = document.getElementById('sevvies-test-result');
+    button.classList.add('disabled');
+    result.textContent = {{ 'Checking…'|t('sevvies')|json_encode|raw }};
+
+    Craft.sendActionRequest('POST', 'sevvies/settings/test-connection')
+        .then(function(response) {
+            var data = response.data;
+            var text = data.message || '';
+
+            if (data.ok && data.checkAccounts && data.checkAccounts.length) {
+                text += ' ' + {{ 'Check accounts:'|t('sevvies')|json_encode|raw }} + ' ';
+                text += data.checkAccounts.map(function(a) { return a.name + ' (#' + a.id + ')'; }).join(', ');
+            }
+
+            if (data.ok && data.users && data.users.length) {
+                text += ' ' + {{ 'Users:'|t('sevvies')|json_encode|raw }} + ' ';
+                text += data.users.map(function(u) { return u.name + ' (#' + u.id + ')'; }).join(', ');
+            }
+
+            result.textContent = text;
+            result.style.color = data.ok ? '' : '#CF1124';
+        })
+        .catch(function(error) {
+            result.textContent = (error.response && error.response.data && error.response.data.message) || {{ 'The check failed.'|t('sevvies')|json_encode|raw }};
+            result.style.color = '#CF1124';
+        })
+        .finally(function() {
+            button.classList.remove('disabled');
+        });
+});
+{% endjs %}
