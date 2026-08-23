@@ -682,11 +682,11 @@ class Invoices extends Component
                 $plugin->documents->send($order, $record);
             }
 
-            if ($settings->archivePdf && $plugin->isPro()) {
+            if ($settings->archivePdf) {
                 $plugin->documents->archive($order, $record);
             }
 
-            if ($settings->bookPayments && $plugin->isPro() && $order->getIsPaid()) {
+            if ($settings->bookPayments && $order->getIsPaid()) {
                 $plugin->payments->book($order, $record);
             }
         } catch (ApiException $e) {

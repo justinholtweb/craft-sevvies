@@ -243,59 +243,51 @@
             errors: settings.getErrors('homeCountry'),
         }) }}
 
-        {% if isPro %}
-            {{ forms.lightswitchField({
-                label: 'Work out the VAT rule per order'|t('sevvies'),
-                instructions: 'Domestic sales, exports outside the EU, and intra-community supplies to EU businesses with a VAT ID each get the right rule, and the reason is recorded on the invoice.'|t('sevvies'),
-                id: 'autoTaxRule',
-                name: 'settings[autoTaxRule]',
-                on: settings.autoTaxRule,
-            }) }}
+        {{ forms.lightswitchField({
+            label: 'Work out the VAT rule per order'|t('sevvies'),
+            instructions: 'Domestic sales, exports outside the EU, and intra-community supplies to EU businesses with a VAT ID each get the right rule, and the reason is recorded on the invoice.'|t('sevvies'),
+            id: 'autoTaxRule',
+            name: 'settings[autoTaxRule]',
+            on: settings.autoTaxRule,
+        }) }}
 
-            {{ forms.textField({
-                label: 'VAT ID field'|t('sevvies'),
-                instructions: 'Handle of the field holding the customer’s VAT ID. Leave empty to use the billing address’s “Organization tax ID”.'|t('sevvies'),
-                id: 'vatIdField',
-                name: 'settings[vatIdField]',
-                value: settings.vatIdField,
-            }) }}
+        {{ forms.textField({
+            label: 'VAT ID field'|t('sevvies'),
+            instructions: 'Handle of the field holding the customer’s VAT ID. Leave empty to use the billing address’s “Organization tax ID”.'|t('sevvies'),
+            id: 'vatIdField',
+            name: 'settings[vatIdField]',
+            value: settings.vatIdField,
+        }) }}
 
-            {{ forms.lightswitchField({
-                label: 'Require a VAT ID for reverse charge'|t('sevvies'),
-                id: 'reverseChargeRequiresVatId',
-                name: 'settings[reverseChargeRequiresVatId]',
-                on: settings.reverseChargeRequiresVatId,
-            }) }}
+        {{ forms.lightswitchField({
+            label: 'Require a VAT ID for reverse charge'|t('sevvies'),
+            id: 'reverseChargeRequiresVatId',
+            name: 'settings[reverseChargeRequiresVatId]',
+            on: settings.reverseChargeRequiresVatId,
+        }) }}
 
-            {{ forms.lightswitchField({
-                label: 'One Stop Shop'|t('sevvies'),
-                instructions: 'On if you are registered for OSS and charge destination VAT to EU consumers.'|t('sevvies'),
-                id: 'ossEnabled',
-                name: 'settings[ossEnabled]',
-                on: settings.ossEnabled,
-                toggle: 'oss-settings',
-            }) }}
+        {{ forms.lightswitchField({
+            label: 'One Stop Shop'|t('sevvies'),
+            instructions: 'On if you are registered for OSS and charge destination VAT to EU consumers.'|t('sevvies'),
+            id: 'ossEnabled',
+            name: 'settings[ossEnabled]',
+            on: settings.ossEnabled,
+            toggle: 'oss-settings',
+        }) }}
 
-            <div id="oss-settings" class="{{ settings.ossEnabled ? '' : 'hidden' }}">
-                {{ forms.selectField({
-                    label: 'What you sell'|t('sevvies'),
-                    id: 'ossKind',
-                    name: 'settings[ossKind]',
-                    value: settings.ossKind,
-                    options: {
-                        goods: 'Goods'|t('sevvies'),
-                        electronic: 'Electronic services'|t('sevvies'),
-                        other: 'Other services'|t('sevvies'),
-                    },
-                }) }}
-            </div>
-        {% else %}
-            <div class="readable">
-                <blockquote class="note">
-                    {{ 'Sevvies Pro works out the VAT rule for each order — exports, intra-community supplies with reverse charge, and One Stop Shop. Lite issues every invoice under the default rule below.'|t('sevvies') }}
-                </blockquote>
-            </div>
-        {% endif %}
+        <div id="oss-settings" class="{{ settings.ossEnabled ? '' : 'hidden' }}">
+            {{ forms.selectField({
+                label: 'What you sell'|t('sevvies'),
+                id: 'ossKind',
+                name: 'settings[ossKind]',
+                value: settings.ossKind,
+                options: {
+                    goods: 'Goods'|t('sevvies'),
+                    electronic: 'Electronic services'|t('sevvies'),
+                    other: 'Other services'|t('sevvies'),
+                },
+            }) }}
+        </div>
 
         {{ forms.selectField({
             label: 'Default VAT rule'|t('sevvies'),
@@ -402,63 +394,55 @@
             }) }}
         </div>
 
-        {% if isPro %}
-            {{ forms.lightswitchField({
-                label: 'Book payments'|t('sevvies'),
-                instructions: 'When Commerce marks an order paid, book the amount against the sevDesk invoice so it closes.'|t('sevvies'),
-                id: 'bookPayments',
-                name: 'settings[bookPayments]',
-                on: settings.bookPayments,
-                toggle: 'book-settings',
-            }) }}
+        {{ forms.lightswitchField({
+            label: 'Book payments'|t('sevvies'),
+            instructions: 'When Commerce marks an order paid, book the amount against the sevDesk invoice so it closes.'|t('sevvies'),
+            id: 'bookPayments',
+            name: 'settings[bookPayments]',
+            on: settings.bookPayments,
+            toggle: 'book-settings',
+        }) }}
 
-            <div id="book-settings" class="{{ settings.bookPayments ? '' : 'hidden' }}">
-                {{ forms.textField({
-                    label: 'Check account id'|t('sevvies'),
-                    instructions: 'The sevDesk account payments are booked onto. “Test connection” lists yours.'|t('sevvies'),
-                    type: 'number',
-                    id: 'checkAccountId',
-                    name: 'settings[checkAccountId]',
-                    value: settings.checkAccountId,
-                    size: 8,
-                }) }}
-            </div>
-
-            {{ forms.selectField({
-                label: 'Refunds'|t('sevvies'),
-                instructions: 'A full refund reverses the invoice; a partial one gets a credit note filed against it.'|t('sevvies'),
-                id: 'refundMode',
-                name: 'settings[refundMode]',
-                value: settings.refundMode,
-                options: {
-                    none: 'Do nothing'|t('sevvies'),
-                    creditNote: 'Create a credit note'|t('sevvies'),
-                },
-            }) }}
-
-            {{ forms.selectField({
-                label: 'Archive the PDF'|t('sevvies'),
-                instructions: 'Store sevDesk’s PDF as a Craft asset, so the archive outlives the subscription.'|t('sevvies'),
-                id: 'pdfVolumeUid',
-                name: 'settings[pdfVolumeUid]',
-                value: settings.pdfVolumeUid,
-                options: volumes,
-            }) }}
-
+        <div id="book-settings" class="{{ settings.bookPayments ? '' : 'hidden' }}">
             {{ forms.textField({
-                label: 'PDF subfolder'|t('sevvies'),
-                instructions: 'Twig, rendered against the order — for example a year/month path.'|t('sevvies'),
-                id: 'pdfSubpath',
-                name: 'settings[pdfSubpath]',
-                value: settings.pdfSubpath,
+                label: 'Check account id'|t('sevvies'),
+                instructions: 'The sevDesk account payments are booked onto. “Test connection” lists yours.'|t('sevvies'),
+                type: 'number',
+                id: 'checkAccountId',
+                name: 'settings[checkAccountId]',
+                value: settings.checkAccountId,
+                size: 8,
             }) }}
-        {% else %}
-            <div class="readable">
-                <blockquote class="note">
-                    {{ 'Booking payments, credit notes for refunds and PDF archiving are Sevvies Pro features.'|t('sevvies') }}
-                </blockquote>
-            </div>
-        {% endif %}
+        </div>
+
+        {{ forms.selectField({
+            label: 'Refunds'|t('sevvies'),
+            instructions: 'A full refund reverses the invoice; a partial one gets a credit note filed against it.'|t('sevvies'),
+            id: 'refundMode',
+            name: 'settings[refundMode]',
+            value: settings.refundMode,
+            options: {
+                none: 'Do nothing'|t('sevvies'),
+                creditNote: 'Create a credit note'|t('sevvies'),
+            },
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Archive the PDF'|t('sevvies'),
+            instructions: 'Store sevDesk’s PDF as a Craft asset, so the archive outlives the subscription.'|t('sevvies'),
+            id: 'pdfVolumeUid',
+            name: 'settings[pdfVolumeUid]',
+            value: settings.pdfVolumeUid,
+            options: volumes,
+        }) }}
+
+        {{ forms.textField({
+            label: 'PDF subfolder'|t('sevvies'),
+            instructions: 'Twig, rendered against the order — for example a year/month path.'|t('sevvies'),
+            id: 'pdfSubpath',
+            name: 'settings[pdfSubpath]',
+            value: settings.pdfSubpath,
+        }) }}
 
         {{ forms.textField({
             label: 'Keep the log for'|t('sevvies'),

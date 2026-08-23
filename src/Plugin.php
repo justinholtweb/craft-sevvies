@@ -43,20 +43,12 @@ use yii\base\Event;
  */
 class Plugin extends BasePlugin
 {
-    public const EDITION_LITE = 'lite';
-    public const EDITION_PRO = 'pro';
-
     public const PERMISSION_MANAGE = 'sevvies:manage';
     public const PERMISSION_SETTINGS = 'sevvies:settings';
 
     public string $schemaVersion = '5.0.0';
     public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
-
-    public static function editions(): array
-    {
-        return [self::EDITION_LITE, self::EDITION_PRO];
-    }
 
     public static function config(): array
     {
@@ -91,11 +83,6 @@ class Plugin extends BasePlugin
             $this->registerOrderEvents();
             $this->registerOrderPanel();
         });
-    }
-
-    public function isPro(): bool
-    {
-        return $this->is(self::EDITION_PRO);
     }
 
     protected function createSettingsModel(): ?Model
@@ -193,7 +180,6 @@ class Plugin extends BasePlugin
             return Craft::$app->getView()->renderTemplate('sevvies/_order-panel', [
                 'order' => $order,
                 'record' => $this->invoices->recordFor($order->id),
-                'isPro' => $this->isPro(),
                 'settings' => $this->getSettings(),
             ], \craft\web\View::TEMPLATE_MODE_CP);
         });
@@ -244,7 +230,7 @@ class Plugin extends BasePlugin
         Event::on(CommercePayments::class, CommercePayments::EVENT_AFTER_REFUND_TRANSACTION, function(TransactionEvent $event): void {
             $settings = $this->getSettings();
 
-            if ($settings->refundMode === Settings::REFUND_NONE || !$this->isPro()) {
+            if ($settings->refundMode === Settings::REFUND_NONE) {
                 return;
             }
 
@@ -316,7 +302,7 @@ class Plugin extends BasePlugin
     {
         $settings = $this->getSettings();
 
-        if (!$settings->bookPayments || !$this->isPro() || !$this->api->isConfigured()) {
+        if (!$settings->bookPayments || !$this->api->isConfigured()) {
             return;
         }
 
@@ -334,13 +320,13 @@ class Plugin extends BasePlugin
     }
 
     /**
-     * Pro: an order condition deciding which orders get invoiced at all.
+     * An order condition deciding which orders get invoiced at all.
      */
     public function matchesCondition(Order $order): bool
     {
         $settings = $this->getSettings();
 
-        if (!$this->isPro() || empty($settings->orderCondition)) {
+        if (empty($settings->orderCondition)) {
             return true;
         }
 

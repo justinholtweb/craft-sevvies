@@ -63,7 +63,6 @@ class InvoicesController extends Controller
             'perPage' => $perPage,
             'total' => $total,
             'counts' => $this->counts(),
-            'isPro' => Plugin::getInstance()->isPro(),
         ]);
     }
 
@@ -92,7 +91,6 @@ class InvoicesController extends Controller
             'draft' => $draft,
             'buildError' => $buildError,
             'payload' => $draft ? Json::encode($draft->payload(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
-            'isPro' => $plugin->isPro(),
             'settings' => $plugin->getSettings(),
         ]);
     }
@@ -164,10 +162,6 @@ class InvoicesController extends Controller
         $this->requirePostRequest();
 
         $plugin = Plugin::getInstance();
-
-        if (!$plugin->isPro()) {
-            return $this->failure(Craft::t('sevvies', 'Booking payments needs Sevvies Pro.'));
-        }
 
         $orderId = (int)$this->request->getRequiredBodyParam('orderId');
         $order = $this->order($orderId);

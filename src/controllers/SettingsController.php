@@ -33,7 +33,6 @@ class SettingsController extends Controller
         return $this->renderTemplate('sevvies/settings', [
             'plugin' => $plugin,
             'settings' => $settings,
-            'isPro' => $plugin->isPro(),
             'taxRules' => $plugin->tax->ruleOptions(),
             'orderStatuses' => $this->orderStatuses(),
             'volumes' => $this->volumes(),

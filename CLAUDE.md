@@ -4,7 +4,7 @@
 
 Sevvies turns Craft Commerce orders into sevDesk invoices. sevDesk is the German SMB accounting
 product; its users are German shops with German VAT obligations, which is what makes this more than
-a REST client. Distributed as `justinholtweb/craft-sevvies`. **Lite (free) + Pro.**
+a REST client. Distributed as `justinholtweb/craft-sevvies`. **Paid, $99, single edition.**
 
 ## Why it exists
 
@@ -118,7 +118,7 @@ No local PHP on this Mac. Everything runs inside the plugin-testing container:
 
 ```sh
 cd ~/Sites/plugin-testing
-ddev exec php /var/www/craft-sevvies/tests/integration/checks.php   # 155 checks
+ddev exec php /var/www/craft-sevvies/tests/integration/checks.php   # 151 checks
 ddev exec bash -c 'find /var/www/craft-sevvies/src -name "*.php" -print0 | xargs -0 -n1 php -l'
 ```
 
@@ -127,8 +127,11 @@ like the real thing — **including the ways it can answer wrongly**: an account
 gross, and a search filter it silently ignores. Those two stubs are the point; they are what proves
 the reconciliation check and the contact-matching guard actually fire.
 
-The suite switches to Pro for the bulk of the run, exercises Lite separately, and restores the
-edition, the settings and every fixture in a `finally`.
+The suite restores the settings and every fixture in a `finally`.
+
+Sevvies ships as **one edition**. There is no `editions()`, no `isPro()`, and no feature gating —
+every capability is reachable from a setting. If a capability ever needs gating again, note that the
+edition lives in project config, which only flushes reliably once per process (see the traps).
 
 ## Coding conventions
 

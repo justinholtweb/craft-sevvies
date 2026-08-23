@@ -58,13 +58,13 @@ retried, only surfaced.
 "Forget this link" drops Sevvies' row. The sevDesk document is never deleted or altered. A refund
 produces a credit note, which is what reversing an invoice actually looks like in bookkeeping.
 
-## Editions
+## Pricing
 
-**Lite (free)** — invoices from orders under one configured VAT rule, contacts, dry run, preview,
-reconciliation, log, send/mark-sent. This is the whole job for a shop selling domestically.
-
-**Pro** — the per-order VAT rule engine (the reason to buy it), payment booking, credit notes,
-PDF archiving, bulk backfill, order conditions.
+**$99, one edition.** An earlier draft split this Lite/Pro with the VAT engine behind the paid
+tier. That was the wrong shape: a German shop selling only domestically is exactly the customer who
+would take the free tier, and the moment they sell one thing to an Austrian business the free tier
+files it wrongly. A plugin whose free edition can produce a wrong bookkeeping document is worse than
+no free edition. So there is one edition, and it is correct.
 
 ## Build order
 
@@ -77,7 +77,7 @@ PDF archiving, bulk backfill, order conditions.
 7. CP: settings, invoices index and detail, log, Commerce order panel — done
 8. Console, Twig variable, queue job — done
 9. German translation — done
-10. 155 integration checks against a stub that also misbehaves on purpose — done
+10. 151 integration checks against a stub that also misbehaves on purpose — done
 
 ## Still to do
 

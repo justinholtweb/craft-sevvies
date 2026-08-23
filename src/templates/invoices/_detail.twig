@@ -16,7 +16,7 @@
                 <button type="button" class="btn" data-sevvies-action="sevvies/invoices/send" data-mode="mark">{{ 'Mark as sent'|t('sevvies') }}</button>
                 <button type="button" class="btn" data-sevvies-action="sevvies/invoices/send" data-mode="email">{{ 'Email it'|t('sevvies') }}</button>
             {% endif %}
-            {% if isPro and not record.bookedAt and order.isPaid %}
+            {% if not record.bookedAt and order.isPaid %}
                 <button type="button" class="btn" data-sevvies-action="sevvies/invoices/book">{{ 'Book the payment'|t('sevvies') }}</button>
             {% endif %}
             <button type="button" class="btn" data-sevvies-action="sevvies/invoices/forget">{{ 'Forget this link'|t('sevvies') }}</button>

@@ -58,12 +58,6 @@ class SyncController extends Controller
     {
         $plugin = Plugin::getInstance();
 
-        if (!$plugin->isPro()) {
-            $this->stderr('Bulk syncing needs Sevvies Pro.' . PHP_EOL, Console::FG_YELLOW);
-
-            return ExitCode::UNAVAILABLE;
-        }
-
         if ($this->dryRun) {
             $plugin->getSettings()->dryRun = true;
         }

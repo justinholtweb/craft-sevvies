@@ -97,8 +97,8 @@ class Tax extends Component
             return $this->make(self::RULE_SMALL_BUSINESS, Craft::t('sevvies', 'Kleinunternehmer under §19 UStG — no VAT is charged on any sale.'));
         }
 
-        // Lite, or auto-detection switched off: everything is a domestic sale.
-        if (!$settings->autoTaxRule || !Plugin::getInstance()->isPro()) {
+        // Auto-detection switched off: everything is a domestic sale.
+        if (!$settings->autoTaxRule) {
             return $this->make(
                 $settings->defaultTaxRule ?: self::RULE_DOMESTIC,
                 Craft::t('sevvies', 'Automatic VAT rules are off; the default rule was used.'),

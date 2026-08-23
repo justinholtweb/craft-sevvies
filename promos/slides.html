@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<!-- handmade: hand-tuned deck -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sevvies — Plugin Store promos</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* sevDesk's own palette: indigo chrome, coral highlights. Sevvies is
+       coloured after the service it integrates, the way Shipper is. */
+    --indigo: #141430;
+    --indigo-light: #212144;
+    --indigo-lighter: #2b2b56;
+    --accent: #F85B45;
+    --accent-light: #FC8A78;
+    --violet: #534ACC;
+    --off-white: #f0f0f5;
+  }
+
+  html { background: #000; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--off-white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- slide shell ---------------------------------------------------- */
+  .slide {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 85% 15%, rgba(248, 91, 69, 0.20) 0%, transparent 40%),
+      radial-gradient(ellipse at 65% 5%,  rgba(252, 138, 120, 0.12) 0%, transparent 35%),
+      radial-gradient(ellipse at 15% 85%, rgba(83, 74, 204, 0.16) 0%, transparent 42%),
+      radial-gradient(ellipse at 35% 95%, rgba(248, 91, 69, 0.07) 0%, transparent 35%),
+      linear-gradient(135deg, #141430 0%, #1b1b3c 30%, #212144 60%, #141430 100%);
+  }
+
+  /* Oversized watermark, echoing the app icon with the document frame stripped */
+  .slide::after {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -14%;
+    width: 1060px;
+    height: 1060px;
+    background: url('assets/watermark.svg') no-repeat center / contain;
+    opacity: 0.045;
+    pointer-events: none;
+  }
+
+  /* Hairline along the top edge */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light), var(--violet), var(--accent));
+    z-index: 5;
+  }
+
+  .inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 118px 130px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(240, 240, 245, 0.62);
+    margin-bottom: 34px;
+  }
+  .eyebrow .rule {
+    width: 58px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  h1, h2 {
+    font-family: 'Jersey 20', sans-serif;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: 0.005em;
+  }
+
+  .gradient-text {
+    background: linear-gradient(100deg, #F85B45 0%, #FC8A78 38%, #8F86FF 72%, #F85B45 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lede {
+    font-size: 34px;
+    line-height: 1.5;
+    color: rgba(240, 240, 245, 0.72);
+  }
+
+  .mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+
+  /* ---- cover slide ----------------------------------------------------- */
+  .cover .inner { gap: 90px; }
+  .cover .copy { flex: 1 1 auto; }
+  .cover h1 { font-size: 210px; margin-bottom: 26px; }
+  .cover .tagline {
+    font-family: 'Jersey 20', sans-serif;
+    font-size: 58px;
+    line-height: 1.02;
+    color: var(--off-white);
+    margin-bottom: 40px;
+    max-width: 16ch;
+  }
+  .cover .lede { max-width: 28ch; font-size: 30px; }
+
+  .cover .mark {
+    flex: 0 0 auto;
+    width: 460px;
+    height: 460px;
+    filter: drop-shadow(14px 14px 0 rgba(0, 0, 0, 0.35));
+  }
+  .cover .mark img { width: 100%; height: 100%; display: block; }
+
+  .badges { display: flex; gap: 16px; margin-top: 52px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 26px;
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(240, 240, 245, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+  }
+  .badge .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+
+  /* ---- the statement slide --------------------------------------------- */
+  .statement .inner { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+  .statement .eyebrow { justify-content: center; }
+  .statement h2 { font-size: 116px; margin-bottom: 34px; max-width: 22ch; }
+  .statement .lede { margin-top: 12px; max-width: 40ch; font-size: 32px; }
+
+  .fan { display: flex; gap: 20px; margin-top: 18px; }
+  .fan .card {
+    width: 300px;
+    padding: 32px 26px;
+    border-radius: 18px;
+    background: rgba(43, 43, 86, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+  }
+  .fan .card .where {
+    font-size: 23px; line-height: 1.3; color: rgba(240,240,245,0.5);
+    margin-bottom: 14px;
+    min-height: 2.6em;   /* two lines, so every rule sits on the same baseline */
+  }
+  .fan .card .rule {
+    font-family: 'Jersey 20', sans-serif;
+    font-size: 46px;
+    line-height: 1.05;
+    color: var(--accent-light);
+    margin-bottom: 14px;
+    min-height: 2.1em;
+  }
+  .fan .card .rate { font-size: 21px; color: rgba(240,240,245,0.42); line-height: 1.4; }
+
+  /* ---- feature slides -------------------------------------------------- */
+  .feature .inner { align-items: center; }
+  .feature .copy { width: 760px; flex: 0 0 760px; }
+  .feature h2 { font-size: 104px; margin-bottom: 30px; }
+  .feature .lede { max-width: 22ch; }
+
+  .points { list-style: none; margin-top: 44px; display: flex; flex-direction: column; gap: 18px; }
+  .points li {
+    display: flex; align-items: flex-start; gap: 16px;
+    font-size: 25px; line-height: 1.4; color: rgba(240, 240, 245, 0.6);
+  }
+  .points li .tick {
+    flex: 0 0 auto; margin-top: 9px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+
+  .panel {
+    position: absolute;
+    top: 50%; left: 880px; right: 130px;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 22px;
+  }
+
+  /* ---- decision card ---------------------------------------------------- */
+  .decision {
+    border-radius: 20px; overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+    background: rgba(43, 43, 86, 0.62);
+  }
+  .decision .top {
+    padding: 30px 38px;
+    background: rgba(248, 91, 69, 0.16);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(240,240,245,0.62);
+  }
+  .decision .row { padding: 30px 38px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .decision .row:last-child { border-bottom: 0; }
+  .decision .k { font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,240,245,0.4); margin-bottom: 10px; }
+  .decision .v { font-size: 32px; color: var(--off-white); line-height: 1.35; }
+  .decision .v.big { font-family: 'Jersey 20', sans-serif; font-size: 54px; color: var(--accent-light); }
+  .decision .v.small { font-size: 25px; color: rgba(240,240,245,0.66); }
+
+  /* ---- reconcile ledger --------------------------------------------------- */
+  .ledger { display: flex; flex-direction: column; gap: 0; border-radius: 18px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 30px 90px rgba(0,0,0,0.5); }
+  .ledger .line {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 34px 40px; background: rgba(43, 43, 86, 0.58);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .ledger .line:last-child { border-bottom: 0; }
+  .ledger .who { font-size: 27px; color: rgba(240,240,245,0.55); }
+  .ledger .amt { font-family: 'Jersey 20', sans-serif; font-size: 62px; }
+  .ledger .line.bad { background: rgba(248, 91, 69, 0.14); }
+  .ledger .line.bad .amt { color: var(--accent); }
+  .ledger .line.good .amt { color: var(--off-white); }
+  .ledger .verdict {
+    padding: 30px 40px; background: rgba(20, 20, 48, 0.85);
+    font-size: 25px; line-height: 1.45; color: rgba(240,240,245,0.7);
+  }
+  .ledger .verdict b { color: var(--accent-light); font-weight: 600; }
+
+  /* ---- refusal ---------------------------------------------------------- */
+  .refusal {
+    border-radius: 18px; padding: 44px 46px;
+    background: rgba(43, 43, 86, 0.6);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+  }
+  .refusal .stop {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-size: 21px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 26px;
+  }
+  .refusal .stop .sq { width: 14px; height: 14px; border-radius: 3px; background: var(--accent); }
+  .refusal .msg { font-size: 33px; line-height: 1.45; color: var(--off-white); }
+  .refusal .msg em { font-style: normal; color: var(--accent-light); }
+  .refusal .sub { margin-top: 26px; font-size: 24px; line-height: 1.5; color: rgba(240,240,245,0.5); }
+
+  /* ---- index / guard ------------------------------------------------------ */
+  .guard { display: flex; flex-direction: column; gap: 20px; }
+  .guard .attempt {
+    display: flex; align-items: center; gap: 26px;
+    padding: 30px 36px; border-radius: 16px;
+    background: rgba(43, 43, 86, 0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .guard .attempt .n {
+    flex: 0 0 auto; width: 56px; height: 56px;
+    display: grid; place-items: center; border-radius: 12px;
+    background: var(--indigo-lighter);
+    font-family: 'Jersey 20', sans-serif; font-size: 34px; color: rgba(240,240,245,0.75);
+  }
+  .guard .attempt .what { flex: 1 1 auto; font-size: 27px; color: rgba(240,240,245,0.72); }
+  .guard .attempt .res { font-size: 24px; font-weight: 600; }
+  .guard .attempt.win { border-color: rgba(248, 91, 69, 0.4); }
+  .guard .attempt.win .n { background: var(--accent); color: #fff; }
+  .guard .attempt.win .res { color: var(--accent-light); }
+  .guard .attempt.dup .res { color: rgba(240,240,245,0.42); }
+  .guard .db {
+    margin-top: 6px; text-align: center; font-size: 23px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: rgba(240,240,245,0.42);
+  }
+
+  /* ---- terminal --------------------------------------------------------- */
+  .term {
+    position: absolute; top: 50%; left: 880px; right: -110px;
+    transform: translateY(-50%);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .term .chrome {
+    height: 44px; background: #2a2a4e;
+    background-image:
+      radial-gradient(circle at 26px 22px, #ff5f57 6.5px, transparent 7px),
+      radial-gradient(circle at 52px 22px, #ffbd2e 6.5px, transparent 7px),
+      radial-gradient(circle at 78px 22px, #28ca42 6.5px, transparent 7px);
+  }
+  .term .body {
+    background: #101028; padding: 42px 44px;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 24px; line-height: 1.95;
+  }
+  .term .prompt { color: var(--accent); }
+  .term .cmd { color: var(--off-white); }
+  .term .out { color: rgba(240, 240, 245, 0.45); }
+  .term .ok { color: #4ade80; }
+  .term .warn { color: #ffd166; }
+  .term .hi { color: var(--accent-light); }
+  .term .blank { display: block; height: 20px; }
+
+  /* ---- footer lockup --------------------------------------------------- */
+  .footer {
+    position: absolute; left: 130px; bottom: 62px; z-index: 3;
+    display: flex; align-items: center; gap: 18px;
+    font-size: 22px; letter-spacing: 0.06em; color: rgba(240, 240, 245, 0.4);
+  }
+  .footer img { width: 40px; height: 40px; border-radius: 9px; }
+  .footer b { color: rgba(240, 240, 245, 0.72); font-weight: 600; }
+
+  /* Only render the requested slide when screenshotting */
+  body.single .slide { display: none; }
+  body.single .slide.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- 1 · Cover ============================================================ -->
+<section class="slide cover" data-n="1">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Craft Commerce 5 · sevDesk</div>
+      <h1 class="gradient-text">Sevvies</h1>
+      <p class="tagline">Orders into sevDesk, under the right VAT rule.</p>
+      <p class="lede">German bookkeeping documents that match what you actually charged — and a record of why each one is taxed the way it is.</p>
+      <div class="badges">
+        <span class="badge"><span class="dot"></span> $99 · one edition</span>
+        <span class="badge">Craft 5.3+ · Commerce 5 · PHP 8.2+</span>
+      </div>
+    </div>
+    <div class="mark"><img src="assets/icon.svg" alt=""></div>
+  </div>
+</section>
+
+<!-- 2 · The problem ====================================================== -->
+<section class="slide statement" data-n="2">
+  <div class="inner">
+    <div class="eyebrow"><span class="rule"></span> The whole idea</div>
+    <h2>One checkout. Four different documents.</h2>
+    <div class="fan">
+      <div class="card">
+        <div class="where">Berlin → Berlin</div>
+        <div class="rule">Umsatzsteuer­pflichtig</div>
+        <div class="rate">taxRule 1 · 19%</div>
+      </div>
+      <div class="card">
+        <div class="where">Berlin → Wien, USt-IdNr.</div>
+        <div class="rule">Innergemein­schaftlich</div>
+        <div class="rate">taxRule 3 · 0% · Reverse Charge</div>
+      </div>
+      <div class="card">
+        <div class="where">Berlin → Zürich</div>
+        <div class="rule">Ausfuhr</div>
+        <div class="rate">taxRule 2 · 0%</div>
+      </div>
+      <div class="card">
+        <div class="where">Berlin → Wien, consumer</div>
+        <div class="rule">One Stop Shop</div>
+        <div class="rate">taxRule 18 · 20% AT</div>
+      </div>
+    </div>
+    <p class="lede">sevDesk files whichever one you tell it to, and never complains. Sevvies works out which one it is.</p>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<!-- 3 · The reason is on the invoice ===================================== -->
+<section class="slide feature" data-n="3">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Every invoice explains itself</div>
+      <h2>Why is this one zero&#8209;rated?</h2>
+      <p class="lede">The answer is on the invoice, not in the source.</p>
+      <ul class="points">
+        <li><span class="tick"></span> Rule derived from billing country and VAT ID</li>
+        <li><span class="tick"></span> Reasoning stored on the order and shown in the CP</li>
+        <li><span class="tick"></span> The sentence German law requires, printed on the document</li>
+        <li><span class="tick"></span> VAT ID format checked against its own country</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="decision">
+      <div class="top">Order 3e35b26 · sevDesk RE-1042</div>
+      <div class="row">
+        <div class="k">Rule</div>
+        <div class="v big">Innergemeinschaftliche Lieferungen</div>
+        <div class="v small">taxRule 3 · taxType eu</div>
+      </div>
+      <div class="row">
+        <div class="k">Why</div>
+        <div class="v small">EU business customer in AT with VAT ID ATU12345678 — intra-community supply, reverse charge.</div>
+      </div>
+      <div class="row">
+        <div class="k">Printed on the invoice</div>
+        <div class="v small">Steuerfreie innergemeinschaftliche Lieferung — Reverse Charge, Steuerschuldnerschaft des Leistungsempfängers</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<!-- 4 · Reconciliation ==================================================== -->
+<section class="slide feature" data-n="4">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> The guard</div>
+      <h2>It will not file the wrong number.</h2>
+      <p class="lede">Every invoice is totalled before it is sent, and checked against sevDesk after.</p>
+      <ul class="points">
+        <li><span class="tick"></span> Disagrees before sending? Nothing is sent</li>
+        <li><span class="tick"></span> Disagrees after? Marked, with the sevDesk id kept</li>
+        <li><span class="tick"></span> Names the likely cause instead of leaving you to find it</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ledger">
+      <div class="line good"><span class="who">Commerce charged</span><span class="amt">100,00 €</span></div>
+      <div class="line bad"><span class="who">sevDesk booked</span><span class="amt">119,00 €</span></div>
+      <div class="verdict">
+        That is the same total with VAT added or removed, which means the
+        <b>“Position prices”</b> setting does not match your sevDesk account.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<!-- 5 · Refuses an impossible rate ======================================== -->
+<section class="slide feature" data-n="5">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Caught before it is filed</div>
+      <h2>A rate the rule cannot carry.</h2>
+      <p class="lede">sevDesk accepts only certain rates under each rule. An export that charged 19% is a Commerce tax problem, and Sevvies says so.</p>
+      <ul class="points">
+        <li><span class="tick"></span> Rule 1 · 0, 7 or 19%</li>
+        <li><span class="tick"></span> Ausfuhren, §19, reverse charge · 0% only</li>
+        <li><span class="tick"></span> One Stop Shop · the destination decides</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="refusal">
+      <span class="stop"><span class="sq"></span> Needs attention</span>
+      <p class="msg">This order charged <em>19%</em> VAT, but sevDesk only accepts <em>0%</em> under <em>“Ausfuhren”</em>. Check the Commerce tax rules for this destination.</p>
+      <p class="sub">Nothing was sent. The order stays in Commerce, untouched, until someone decides which of the two is wrong.</p>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<!-- 6 · Never twice ======================================================= -->
+<section class="slide feature" data-n="6">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> Duplicate protection</div>
+      <h2>One order. One document. Ever.</h2>
+      <p class="lede">Not a check that could race a retry — a unique index. The database refuses the second one.</p>
+      <ul class="points">
+        <li><span class="tick"></span> Status flips, queue retries, double webhooks — all safe</li>
+        <li><span class="tick"></span> Refunds mirrored exactly once, as credit notes</li>
+        <li><span class="tick"></span> Nothing in sevDesk is ever deleted or altered</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="guard">
+      <div class="attempt win">
+        <span class="n">1</span>
+        <span class="what">Order paid → invoice claimed</span>
+        <span class="res">RE-1042</span>
+      </div>
+      <div class="attempt dup">
+        <span class="n">2</span>
+        <span class="what">Status changed → tries again</span>
+        <span class="res">refused</span>
+      </div>
+      <div class="attempt dup">
+        <span class="n">3</span>
+        <span class="what">Queue retry after a timeout</span>
+        <span class="res">refused</span>
+      </div>
+      <div class="db">unique (orderId)</div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<!-- 7 · Preview before you commit ========================================= -->
+<section class="slide feature" data-n="7">
+  <div class="inner">
+    <div class="copy">
+      <div class="eyebrow"><span class="rule"></span> See it before you send it</div>
+      <h2>Dry run the whole thing.</h2>
+      <p class="lede">Build every invoice, log the exact payload, send nothing. Then check your VAT settings against your own orders.</p>
+      <ul class="points">
+        <li><span class="tick"></span> The preview is the literal request</li>
+        <li><span class="tick"></span> In the CP, on the order screen, or from the console</li>
+        <li><span class="tick"></span> Backfill years of orders the same way</li>
+      </ul>
+    </div>
+  </div>
+  <div class="term">
+    <div class="chrome"></div>
+    <div class="body">
+      <div><span class="prompt">$</span> <span class="cmd">php craft sevvies/sync/preview 15841</span></div>
+      <span class="blank"></span>
+      <div class="out">VAT rule: <span class="hi">Innergemeinschaftliche Lieferungen (taxRule 3)</span></div>
+      <div class="out">Reason:   EU business customer in AT with VAT ID</div>
+      <div class="out">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ATU12345678 — reverse charge.</div>
+      <div class="out">Commerce: 238.00 EUR</div>
+      <div class="out">sevDesk:  <span class="ok">238.00 EUR</span></div>
+      <span class="blank"></span>
+      <div><span class="prompt">$</span> <span class="cmd">php craft sevvies/sync/pending --dry-run</span></div>
+      <div class="out">142 orders built. <span class="ok">Nothing sent.</span></div>
+      <div class="out">3 need attention — <span class="warn">see the log</span></div>
+    </div>
+  </div>
+  <div class="footer"><img src="assets/icon.svg" alt=""> <b>Sevvies</b> &nbsp;·&nbsp; justinholt.com/plugins/craft-sevvies</div>
+</section>
+
+<script>
+  var n = new URLSearchParams(location.search).get('s');
+  if (n) {
+    document.body.classList.add('single');
+    var el = document.querySelector('.slide[data-n="' + n + '"]');
+    if (el) el.classList.add('active');
+  }
+</script>
+</body>
+</html>

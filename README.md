@@ -1,7 +1,7 @@
 # Sevvies
 
 **sevDesk invoicing for Craft Commerce.** Paid orders become correct German bookkeeping documents —
-with the right VAT rule, the right total, and a record of why.
+with the right VAT rule, the right total, and a record of why. **$99 per installation.**
 
 Requires Craft CMS 5.3+, Craft Commerce 5.0+ and PHP 8.2+.
 
@@ -40,8 +40,7 @@ whose numbers do not match what Commerce actually charged.
 - **Speaks German.** The interface, the tax texts and the document wording are all translated,
   because this is a German product.
 
-Pro adds payment booking, credit notes for refunds, sevDesk-sent email, PDF archiving into a Craft
-volume, bulk backfill, and the per-order VAT rule engine itself.
+All of it is in the one edition. There is no feature you have to upgrade to reach.
 
 ## Getting started
 
@@ -87,7 +86,7 @@ setting to change, rather than leaving you to find it on a quarterly return.
 php craft sevvies/tools/check              # test the token, list check accounts and users
 php craft sevvies/sync/preview <orderId>   # print the payload and the VAT reasoning
 php craft sevvies/sync/order <orderId>     # file one order
-php craft sevvies/sync/pending --limit=50  # backfill (Pro)
+php craft sevvies/sync/pending --limit=50  # backfill every un-invoiced order
 php craft sevvies/tools/prune-log
 php craft sevvies/tools/flush-cache
 ```
@@ -95,21 +94,10 @@ php craft sevvies/tools/flush-cache
 `sync/preview` builds the payload through exactly the same code path as a real send, so what it
 prints is what sevDesk would receive.
 
-## Editions
+## Price
 
-| | Lite | Pro |
-|---|---|---|
-| Invoices from orders, contacts, log, reconciliation | ✓ | ✓ |
-| Dry run and payload preview | ✓ | ✓ |
-| Send, or mark as sent | ✓ | ✓ |
-| VAT rule worked out per order (export, reverse charge, OSS) | — | ✓ |
-| Book payments against the invoice | — | ✓ |
-| Credit notes for refunds | — | ✓ |
-| PDF archiving into a Craft volume | — | ✓ |
-| Bulk backfill and order conditions | — | ✓ |
-
-Lite issues every invoice under one configured VAT rule, which is the right answer for a shop that
-only sells domestically.
+**$99 per Craft installation.** One edition, everything included — the VAT rule engine, payment
+booking, credit notes, PDF archiving and bulk backfill. Development and testing installs are free.
 
 ## What Sevvies will not do
 

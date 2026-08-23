@@ -74,32 +74,6 @@ $suffix = substr(md5((string)microtime(true)), 0, 6);
 $createdProducts = [];
 $createdOrders = [];
 $originalSettings = $plugin->getSettings()->toArray();
-$originalEdition = Craft::$app->getPlugins()->getPluginInfo('sevvies')['edition'] ?? Plugin::EDITION_LITE;
-
-/**
- * Editions live in project config, and project config only reliably flushes once
- * per process — switching repeatedly in one run makes `is()` answer stale. The
- * plugin reads `$edition` off the instance, so a run-scoped switch sets that
- * directly. Nothing is persisted, so nothing needs unwinding beyond the restore
- * in the `finally`.
- */
-function switchEdition(string $edition): void
-{
-    global $plugin;
-
-    $plugin->edition = $edition;
-}
-
-/**
- * Persist the edition — used once, in the cleanup, to leave the harness as it
- * was found.
- */
-function persistEdition(string $edition): void
-{
-    Craft::$app->getPlugins()->switchEdition('sevvies', $edition);
-    Craft::$app->getProjectConfig()->saveModifiedConfigData();
-}
-
 // `craft-penny` types its Elements::EVENT_BEFORE_SAVE_ELEMENT handler `ModelEvent`
 // while Craft passes an `ElementEvent`, so every element save in this shared
 // harness fatals while it is enabled. Detached in-process, never persisted.
@@ -432,7 +406,6 @@ function markPaid(Order $order): void
 }
 
 try {
-    switchEdition(Plugin::EDITION_PRO);
     setSettings([
         'apiToken' => str_repeat('a', 32),
         'apiBaseUrl' => 'https://my.sevdesk.de/api/v1',
@@ -644,10 +617,10 @@ try {
         return $plugin->tax->validateRates($decision, [21.0]) === null;
     });
 
-    check('Lite ignores the country and uses the default rule', function() use ($plugin, $usOrder) {
-        switchEdition(Plugin::EDITION_LITE);
+    check('turning automatic rules off falls back to the default rule', function() use ($plugin, $usOrder) {
+        setSettings(['autoTaxRule' => false]);
         $decision = $plugin->tax->decide($usOrder);
-        switchEdition(Plugin::EDITION_PRO);
+        setSettings(['autoTaxRule' => true]);
 
         return $decision->rule === Tax::RULE_DOMESTIC ?: "got rule {$decision->rule}";
     });
@@ -1353,16 +1326,16 @@ try {
         return 'no credit note was created';
     });
 
-    check('Lite does not mirror refunds', function() use ($plugin, $deVariant) {
-        switchEdition(Plugin::EDITION_LITE);
+    check('refunds are not mirrored when the setting is off', function() use ($plugin, $deVariant) {
+        setSettings(['refundMode' => Settings::REFUND_NONE]);
         $order = makeOrder([['variant' => $deVariant, 'qty' => 1]]);
-        $record = $plugin->invoices->sync($order);
+        $plugin->invoices->sync($order);
         $transaction = new craft\commerce\models\Transaction();
         $transaction->id = 91003;
         $transaction->amount = 10.0;
         $marker = requestCount();
         $credit = $plugin->payments->refund($order, $transaction);
-        switchEdition(Plugin::EDITION_PRO);
+        setSettings(['refundMode' => Settings::REFUND_CREDIT_NOTE]);
 
         return $credit === null && requestsSince($marker) === [];
     });
@@ -1634,48 +1607,6 @@ try {
     });
 
     // -----------------------------------------------------------------
-    section('Editions');
-
-    check('Pro is Pro', function() use ($plugin) {
-        return $plugin->isPro() === true;
-    });
-
-    check('Lite is not', function() use ($plugin) {
-        switchEdition(Plugin::EDITION_LITE);
-        $isPro = $plugin->isPro();
-        switchEdition(Plugin::EDITION_PRO);
-
-        return $isPro === false;
-    });
-
-    check('Lite still creates invoices', function() use ($plugin, $deVariant) {
-        switchEdition(Plugin::EDITION_LITE);
-        $order = makeOrder([['variant' => $deVariant, 'qty' => 1]]);
-        $record = $plugin->invoices->sync($order);
-        switchEdition(Plugin::EDITION_PRO);
-
-        return $record->sevdeskId !== null ?: 'state ' . $record->state . ' — ' . $record->lastError;
-    });
-
-    check('Lite does not book payments', function() use ($plugin, $deVariant) {
-        setSettings(['bookPayments' => true, 'checkAccountId' => 42]);
-        switchEdition(Plugin::EDITION_LITE);
-        $order = makeOrder([['variant' => $deVariant, 'qty' => 1]]);
-        $marker = requestCount();
-        $record = $plugin->invoices->sync($order);
-        switchEdition(Plugin::EDITION_PRO);
-        setSettings(['bookPayments' => false, 'checkAccountId' => null]);
-
-        foreach (requestsSince($marker) as $request) {
-            if (str_ends_with($request['path'], '/bookAmount')) {
-                return 'Lite booked a payment';
-            }
-        }
-
-        return true;
-    });
-
-    // -----------------------------------------------------------------
     section('Settings');
 
     check('net price basis means showNet', function() use ($plugin) {
@@ -1792,12 +1723,6 @@ try {
         applySettings($originalSettings);
     } catch (Throwable $e) {
         echo "  ! could not restore settings: {$e->getMessage()}\n";
-    }
-
-    try {
-        persistEdition($originalEdition);
-    } catch (Throwable $e) {
-        echo "  ! could not restore the plugin edition: {$e->getMessage()}\n";
     }
 
     echo "  ✓ fixtures removed, settings restored\n";

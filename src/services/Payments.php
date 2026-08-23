@@ -117,7 +117,7 @@ class Payments extends Component
         $plugin = Plugin::getInstance();
         $settings = $plugin->getSettings();
 
-        if ($settings->refundMode !== Settings::REFUND_CREDIT_NOTE || !$plugin->isPro()) {
+        if ($settings->refundMode !== Settings::REFUND_CREDIT_NOTE) {
             return null;
         }
 

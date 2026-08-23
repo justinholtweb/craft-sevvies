@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#ffffff">
+  <!-- The tick alone. The document frame is ~5px of stroke here, which at watermark
+       scale reads as a hard-edged box; the ruled lines read as grey UI pills behind
+       the copy. Both are stripped, leaving the one mark that means "checked". -->
+  <path d="M18 52l22 22 48-50" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
