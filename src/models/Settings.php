@@ -69,7 +69,7 @@ class Settings extends Model
     /** @var bool Build and log the payload but never send it. */
     public bool $dryRun = false;
 
-    /** @var array|null Pro: an order condition deciding which orders sync. */
+    /** @var array|null An order condition deciding which orders sync. */
     public ?array $orderCondition = null;
 
     // — Document ——————————————————————————————————————————————————
@@ -119,13 +119,13 @@ class Settings extends Model
     /** @var string ISO-3166-1 alpha-2 country you are taxed in. */
     public string $homeCountry = 'DE';
 
-    /** @var bool Pro: derive the VAT rule from the customer's country and VAT ID. */
+    /** @var bool Derive the VAT rule from the customer's country and VAT ID. */
     public bool $autoTaxRule = true;
 
     /** @var bool Reverse charge only when the customer supplied a VAT ID. */
     public bool $reverseChargeRequiresVatId = true;
 
-    /** @var bool Pro: use One Stop Shop rules for EU B2C sales. */
+    /** @var bool Use One Stop Shop rules for EU B2C sales. */
     public bool $ossEnabled = false;
 
     /** @var string OSS flavour: goods (18), electronic (19) or other service (20). */
@@ -171,16 +171,16 @@ class Settings extends Model
     /** @var string Comma-separated addresses to BCC. */
     public string $emailBcc = '';
 
-    /** @var bool Pro: book the payment in sevDesk when Commerce marks the order paid. */
+    /** @var bool Book the payment in sevDesk when Commerce marks the order paid. */
     public bool $bookPayments = false;
 
     /** @var int|null sevDesk check account the payment is booked onto. */
     public ?int $checkAccountId = null;
 
-    /** @var string Pro: how to mirror Commerce refunds. */
+    /** @var string How to mirror Commerce refunds. */
     public string $refundMode = self::REFUND_NONE;
 
-    /** @var bool Pro: store the sevDesk PDF as a Craft asset. */
+    /** @var bool Store the sevDesk PDF as a Craft asset. */
     public bool $archivePdf = false;
 
     /** @var string|null Volume UID the PDF is stored in. */
