@@ -133,6 +133,22 @@ Sevvies ships as **one edition**. There is no `editions()`, no `isPro()`, and no
 every capability is reachable from a setting. If a capability ever needs gating again, note that the
 edition lives in project config, which only flushes reliably once per process (see the traps).
 
+## The icon
+
+`src/icon.svg` follows the family convention, and `web/images/plugins/sevvies.svg` on
+justinholt.com is a **byte-identical copy** of it — abacus and bird are too, and the marketing-site
+skill copies rather than redraws.
+
+- `viewBox="0 0 100 100"`, no `width`/`height`
+- `<rect x="0" y="0" width="100" height="100" rx="22.44" fill="#F85B45"/>` — the 22.44% tile radius
+  the whole family uses
+- the glyph in `#FEFEFE`, built from **filled** geometry. Not strokes: `src/icon-mask.svg` is the
+  glyph path alone and has to be a solid silhouette, and stroked outlines do not survive that.
+- the rules and the tick are **holes** in one `fill-rule="evenodd"` path, so the mask is that path
+  copied across unchanged
+
+`promos/assets/icon.svg` is another copy of the same file.
+
 ## Coding conventions
 
 - `Craft::t('sevvies', '…')` for user-facing strings; **both** `src/translations/en/sevvies.php`

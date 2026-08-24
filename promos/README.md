@@ -41,9 +41,8 @@ Jersey 20 for display, Inter for body — the family's fonts.
 
 ## Assets
 
-- `icon.svg` — the app icon on sevDesk indigo, used for the cover mark and the footer lockup. This
-  is a *promo* copy: `../src/icon.svg` uses `currentColor` so the CP can theme it, which renders as
-  black on a dark slide.
+- `icon.svg` — a straight copy of `../src/icon.svg`, used for the cover mark and the footer lockup.
+  Re-copy it whenever the icon changes.
 - `watermark.svg` — **the tick alone.** Two things were stripped and should stay stripped: the
   document frame, whose bars at watermark scale read as a hard-edged box across the slide, and the
   ruled lines, which read as grey UI pills sitting behind the copy.
